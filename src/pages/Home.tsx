@@ -36,13 +36,13 @@ export default function Home() {
             <div className="flex flex-col justify-between h-full max-w-3xl py-8 gap-8">
               <FadeIn direction="up" delay={0.2}>
                 <h1 className="text-text-white font-bold text-[56px] leading-tight tracking-[-0.03em]">
-                  Kuala Lumpur's Premier Bike Showroom
+                  Find Your Perfect<br></br>Pre-Owned Bike
                 </h1>
               </FadeIn>
               <FadeIn direction="up" delay={0.4} className="mt-auto">
                 <div className="flex flex-col gap-6">
                   <p className="text-text-white font-medium text-base max-w-[480px]">
-                    Curated pre-owned motorcycles from the world's most sought-after brands since 2015
+                    Discover quality-inspected pre-owned motorcycles at competitive prices. Buy, sell, and ride with confidence.
                   </p>
                   <Button asLink to="/inventory" variant="inverse">
                     Browse Bikes
@@ -68,8 +68,8 @@ export default function Home() {
                 </StaggerItem>
                 <StaggerItem>
                   <div className="flex flex-col items-end">
-                    <span className="text-text-white font-bold text-[48px] leading-none">RM 40M</span>
-                    <span className="text-text-white-muted uppercase text-sm tracking-wider">Sales Value</span>
+                    <span className="text-text-white font-bold text-[48px] leading-none">Est. 2016</span>
+                    <span className="text-text-white-muted uppercase text-sm tracking-wider">Years of Trust</span>
                   </div>
                 </StaggerItem>
               </StaggerContainer>
@@ -165,7 +165,7 @@ export default function Home() {
                   <div className="absolute inset-0 z-0 flex justify-center items-center opacity-30">
                     <div className="w-[350px] h-[350px] rounded-full border border-white/20 absolute -bottom-[166px] -left-[79px]" />
                   </div>
-                  <h3 className="text-white font-medium text-2xl z-10 transition-transform duration-300 group-hover:-translate-y-1">Verified History & Trusted Brand</h3>
+                  <h3 className="text-white font-medium text-2xl z-10 transition-transform duration-300 group-hover:-translate-y-1">Verified Ownership & Documents</h3>
                 </div>
               </StaggerItem>
 
@@ -222,25 +222,17 @@ export default function Home() {
             {/* Left Column - Testimonials Grid */}
             <div className="w-full lg:w-[65%] grid grid-cols-1 md:grid-cols-2 gap-6">
               <StaggerItem><TestimonialCard
-                name="Amir Razali"
-                quote="Outstanding service from start to finish, truly professional team and exceptional bike quality throughout"
-                vehicle="Ducati Panigale V4 Owner"
-              /></StaggerItem>
+                name="Prasant Murali"
+                quote="I have been a customer here for more than 4 years and have visited many used bike showrooms, but none have matched the experience at KL7 Garage. The collection is extensive, and whatever your requirement may be, KL7 Garage is worth a visit." vehicle={''}              /></StaggerItem>
               <StaggerItem><TestimonialCard
-                name="Haziq Farhan"
-                quote="Transparent pricing, honest advice, and zero pressure—exactly what buying a pre-owned bike should be"
-                vehicle="Honda CBR1000RR Owner"
-              /></StaggerItem>
+                name="Samaritan Cartel"
+                quote="The owner and the entire team were incredibly helpful throughout the process. Their professionalism, support, and customer-first approach made the experience smooth and enjoyable. A great place to find and own your dream bike." vehicle={''}              /></StaggerItem>
               <StaggerItem><TestimonialCard
-                name="Syafiq Danial"
-                quote="Incredible selection of pristine bikes, each one meticulously inspected and beautifully presented to perfection"
-                vehicle="Kawasaki Ninja ZX-10R Owner"
-              /></StaggerItem>
+                name="Sharuk Sunil"
+                quote="Best in town. The vehicles are remarkably maintained and feel almost brand new. The team is well-mannered, supportive, and genuinely interested in helping customers find the right motorcycle. Highly recommended." vehicle={''}              /></StaggerItem>
               <StaggerItem><TestimonialCard
-                name="Daniel Lim"
-                quote="Knowledgeable team who genuinely care, made finding my dream ride effortless and enjoyable"
-                vehicle="BMW S1000RR Owner"
-              /></StaggerItem>
+                name="Sarath Prasad"
+                quote="Good service and well-maintained vehicles. I recently purchased a Fascino scooter from KL7 Garage and had a very positive experience. The showroom offers quality vehicles and a professional buying process." vehicle={''}              /></StaggerItem>
             </div>
 
             {/* Right Column - Metrics */}

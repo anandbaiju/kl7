@@ -1,31 +1,150 @@
-import React, { useState, useMemo } from 'react';
-import { inventory } from '../data/cms';
+import React, { useState, useMemo, useEffect } from 'react';
+import { supabase } from '../config/supabaseclient';
 import CarsCard from '../components/CarsCard';
 import FadeIn from '../components/FadeIn';
 import StaggerContainer, { StaggerItem } from '../components/StaggerContainer';
 import Button from '../components/Button';
 import FilterSidebar, { type FilterState, defaultFilters } from '../components/FilterSidebar';
+import type { CMSInventoryItem } from '../data/cms';
 
+// ─── TYPE ────────────────────────────────────────────────────────────────────
+export interface Bike {
+  id: number;
+  brand: string;
+  model: string;
+  variant?: string;
+  year: number;
+  color?: string;
+  owners?: number;
+  body_type?: string;
+  drivetrain?: string;
+  interior?: string;
+  reference_number?: string;
+  vin?: string;
+  vehicle_overview?: string;
+  description?: string;
+  engine?: string;
+  power?: string;
+  torque?: string;
+  transmission?: string;
+  mileage?: string;
+  fuel_type?: string;
+  price: number;
+  original_price?: number;
+  status?: string;
+  showroom?: string;
+  condition?: string;
+  odometer?: number;
+  registration_state?: string;
+  insurance_valid_till?: string;
+  key_features?: string[];
+  images?: string[];      // array of Supabase Storage public URLs
+  featured?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+
+/**
+ * Adapts a Bike row from Supabase into the shape CarsCard already
+ * expects (the same shape it received from the old CMS inventory).
+ *
+ * If your CarsCard already accepts a `Bike` directly you can remove
+ * this adapter and pass the bike straight to the card.
+ */
+export function bikeToCardItem(bike: Bike): CMSInventoryItem {
+  return {
+    id: String(bike.id),
+    slug: `${bike.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${bike.model.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${bike.id}`,
+    draft: false,
+    fieldData: {
+      i251F_cLI: { value: `${bike.brand} ${bike.model}` },
+      yhmUaSJgn: { value: bike.images?.[0] ?? '' },
+      HKJOw7KI7: { value: bike.description ?? '' },
+      AsGqvZIRE: { value: String(bike.year) },
+      FhhhIfKRq: { value: bike.brand },
+      dWaufMx5m: { value: bike.model },
+      YwnNt4bSJ: { value: bike.variant ?? '' },
+      N5J_P9k5F: { value: bike.reference_number ?? '' },
+      nbtxPVxMC: { value: bike.vin ?? '' },
+      ieALPznS3: { value: String(bike.price) },
+      quZuCOPdT: { value: [] },
+      mRbkUObKn: { value: bike.featured ?? false },
+      BGGrMCEzn: { value: bike.status === 'Sold' },
+      oBzwmlvOK: { value: bike.status ?? '' },
+      FixYCUMxe: { value: bike.odometer ?? 0 },
+      b0EvjjHmu: { value: bike.engine ?? '' },
+      aoQqPXyK7: { value: bike.power ?? '' },
+      DUdYPJIP0: { value: bike.transmission ?? '' },
+      VOiJF5nuX: { value: bike.drivetrain ?? '' },
+      gCShDyGRg: { value: bike.body_type ?? '' },
+      WeRM4zBli: { value: [] },
+      XKcYqdDj3: { value: bike.fuel_type ?? '' },
+      BpRFrjZwy: { value: bike.color ?? '' },
+      BsutmQ78B: { value: bike.interior ?? '' },
+      hNda28YpA: { value: 2 },
+      R6wR_I_UP: { value: 0 },
+      P8jIPIoSA: { value: bike.key_features?.join(', ') ?? '' },
+      mwpOsOmon: { value: bike.condition ?? '' },
+      i2W8PQvdS: { value: bike.owners ?? 1 },
+      AVWSdqHPq: { value: '' },
+      S3iwwd2B1: { value: '' },
+      Vj1xGOKCN: { value: '' },
+      cMANx2t9u: { value: false },
+    },
+  };
+}
+
+// ─── CATEGORIES ──────────────────────────────────────────────────────────────
 const categories = ["All", "Coupe", "SUV", "Estate", "Convertible"];
 
+// ─── COMPONENT ───────────────────────────────────────────────────────────────
 export default function Inventory() {
+  const [bikes, setBikes] = useState<Bike[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(defaultFilters);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  // ── Fetch from Supabase ───────────────────────────────────────────────────
+  useEffect(() => {
+    async function fetchBikes() {
+      setLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase
+        .from('bikes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        setError(error.message);
+      } else {
+        setBikes((data as Bike[]) ?? []);
+      }
+
+      setLoading(false);
+    }
+
+    fetchBikes();
+  }, []);
+
+  // ── Filter logic (same as before, now against real Bike fields) ───────────
   const filteredInventory = useMemo(() => {
-    return inventory.filter((item) => {
-      const fd = item.fieldData;
-      const name = fd.i251F_cLI?.value.toLowerCase() ?? "";
-      const model = fd.dWaufMx5m?.value.toLowerCase() ?? "";
-      const make = fd.FhhhIfKRq?.value ?? "";
-      const price = Number(fd.ieALPznS3?.value) || 0;
-      const year = Number(fd.AsGqvZIRE?.value) || 0;
-      const mileage = Number(fd.FixYCUMxe?.value) || 0;
-      const color = fd.BpRFrjZwy?.value ?? "";
-      const bodyType = fd.gCShDyGRg?.value ?? "";
+    return bikes.filter((bike) => {
+      const name = `${bike.brand} ${bike.model}`.toLowerCase();
+      const model = bike.model.toLowerCase();
+      const make = bike.brand;
+      const price = Number(bike.price) || 0;
+      const year = Number(bike.year) || 0;
+      const mileage = Number(bike.odometer) || 0;
+      const color = bike.color ?? '';
+      const bodyType = bike.body_type ?? '';
 
       const matchSearch = name.includes(searchQuery.toLowerCase()) || model.includes(searchQuery.toLowerCase());
       const matchCategory = activeCategory === "All" || bodyType.toLowerCase() === activeCategory.toLowerCase();
@@ -40,8 +159,8 @@ export default function Inventory() {
         appliedFilters.colors.length === 0 ||
         appliedFilters.colors.some((c) => color.toLowerCase().includes(c.toLowerCase()));
       const matchKm = mileage >= appliedFilters.kmRange[0] && mileage <= appliedFilters.kmRange[1];
-      // NOTE: "Segment" (Luxury/Normal) isn't a real CMS field - derived from
-      // price as a placeholder until a real segment field exists.
+
+      // Segment derived from price (same logic as before)
       const segment = price >= 150000 ? "Luxury" : "Normal";
       const matchSegment = appliedFilters.segments.length === 0 || appliedFilters.segments.includes(segment);
 
@@ -50,7 +169,7 @@ export default function Inventory() {
         matchBodyType && matchColor && matchKm && matchSegment
       );
     });
-  }, [searchQuery, activeCategory, appliedFilters]);
+  }, [bikes, searchQuery, activeCategory, appliedFilters]);
 
   const applyFilters = () => {
     setAppliedFilters(filters);
@@ -71,6 +190,7 @@ export default function Inventory() {
     (appliedFilters.yearRange[0] !== defaultFilters.yearRange[0] || appliedFilters.yearRange[1] !== defaultFilters.yearRange[1] ? 1 : 0) +
     (appliedFilters.kmRange[0] !== defaultFilters.kmRange[0] || appliedFilters.kmRange[1] !== defaultFilters.kmRange[1] ? 1 : 0);
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="w-full min-h-screen bg-background-main flex flex-col">
 
@@ -122,8 +242,7 @@ export default function Inventory() {
               />
             </div>
 
-            {/* Categories + mobile filter trigger - min-w-0 lets overflow-x-auto
-                actually scroll instead of being clipped by the page wrapper */}
+            {/* Categories + mobile filter trigger */}
             <div className="flex flex-row items-center gap-2 min-w-0 flex-1">
               <div className="flex flex-row gap-2 overflow-x-auto hide-scrollbar min-w-0">
                 {categories.map((cat) => (
@@ -139,7 +258,7 @@ export default function Inventory() {
                 ))}
               </div>
 
-              {/* Mobile-only Filter trigger, sits right under the search bar on small screens */}
+              {/* Mobile-only Filter trigger */}
               <button
                 type="button"
                 onClick={() => setMobileFiltersOpen(true)}
@@ -173,15 +292,24 @@ export default function Inventory() {
 
           {/* Grid */}
           <div className="flex-1 min-w-0">
-            {filteredInventory.length > 0 ? (
-              <StaggerContainer delayChildren={0.1} staggerChildren={0.08} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {filteredInventory.map((item) => (
-                  <StaggerItem key={item.id}>
-                    <CarsCard item={item} />
-                  </StaggerItem>
-                ))}
-              </StaggerContainer>
-            ) : (
+            {/* Loading state */}
+            {loading && (
+              <div className="w-full py-32 flex flex-col items-center justify-center gap-4 text-center">
+                <div className="w-8 h-8 rounded-full border-2 border-grey-main border-t-black-main animate-spin" />
+                <p className="text-text-black-muted font-medium">Loading bikes...</p>
+              </div>
+            )}
+
+            {/* Error state */}
+            {!loading && error && (
+              <div className="w-full py-32 flex flex-col items-center justify-center gap-4 text-center">
+                <h3 className="text-[24px] font-bold text-text-black">Something went wrong</h3>
+                <p className="text-text-black-muted">{error}</p>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!loading && !error && filteredInventory.length === 0 && (
               <div className="w-full py-32 flex flex-col items-center justify-center gap-4 text-center">
                 <h3 className="text-[24px] font-bold text-text-black">No bikes found</h3>
                 <p className="text-text-black-muted">Try adjusting your search or filter criteria.</p>
@@ -193,6 +321,17 @@ export default function Inventory() {
                   Clear Filters
                 </Button>
               </div>
+            )}
+
+            {/* Results */}
+            {!loading && !error && filteredInventory.length > 0 && (
+              <StaggerContainer delayChildren={0.1} staggerChildren={0.08} className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredInventory.map((bike) => (
+                  <StaggerItem key={bike.id}>
+                    <CarsCard item={bikeToCardItem(bike)} />
+                  </StaggerItem>
+                ))}
+              </StaggerContainer>
             )}
           </div>
         </div>
